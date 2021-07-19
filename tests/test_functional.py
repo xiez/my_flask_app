@@ -3,6 +3,8 @@
 
 See: http://webtest.readthedocs.org/
 """
+from unittest.mock import patch
+
 from flask import url_for
 
 from my_flask_app.user.models import User
@@ -118,3 +120,22 @@ class TestRegistering:
         res = form.submit()
         # sees error
         assert "Username already registered" in res
+
+
+class MockExternalSvc:
+    def get_user_info(self, uid):
+        return 1
+
+
+class TestPing:
+    def test_ping(self, user, testapp):
+        print(user, testapp)
+
+        with patch("my_flask_app.public.views.time.sleep") as mock_sleep:
+            with patch("my_flask_app.utils.ExternalService", new=MockExternalSvc):
+                mock_sleep.return_val = None
+
+                res = testapp.get(url_for("public.ping") + "?sleep=5")
+                assert res.body == b"pong"
+
+        # res = testapp.get(url_for('public.ping') + '?exce=1')

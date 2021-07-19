@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Public section, including homepage and signup."""
+import time
+
 from flask import (
     Blueprint,
     current_app,
@@ -75,3 +77,22 @@ def about():
     """About page."""
     form = LoginForm(request.form)
     return render_template("public/about.html", form=form)
+
+
+@blueprint.route("/ping/")
+def ping():
+    """Ping view."""
+    sleep = int(request.args.get("sleep", 0))
+    if sleep > 0:
+        time.sleep(sleep)
+
+    from my_flask_app.utils import ExternalService, check_captcha
+
+    # call external service which will take some time
+    _ = ExternalService().get_user_info(1)
+
+    # call function which will raise exception
+    if request.args.get("exce") is not None:
+        check_captcha("hello")
+
+    return "pong"
